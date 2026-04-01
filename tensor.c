@@ -29,3 +29,19 @@ Tensor *tensor_init(FILE *data, int picture, int channel, int h, int w) {
 
     return tensor;
 }
+
+
+void free_tensor(Tensor *tensor) {
+    if (tensor == NULL) return;
+
+    if (tensor->data != NULL) {
+        free(tensor->data);
+        tensor->data = NULL;
+    }
+    if (tensor->class_picture != NULL) {
+        free(tensor->class_picture);
+        tensor->class_picture = NULL;
+    }
+
+    free(tensor);
+}
