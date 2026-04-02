@@ -3,7 +3,7 @@
 #include "tensor.h"
 
 
-Tensor *tensor_init(FILE *data, int picture, int channel, int h, int w) {
+Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w) {
     Tensor *tensor = (Tensor *)malloc(sizeof(Tensor));
     tensor->count_picture = picture;
     tensor->count_channel = channel;
