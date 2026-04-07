@@ -2,4 +2,7 @@
 
 
 // преобразует тензор в матрицу для свертки
-void im2col(Tensor *tensor, int size_ker, float *res);
+float *im2col(Tensor *tensor, int size_ker, int *res_row, int *res_col);
+// tensor - входное изображение
+// size_ker - размер ядра
+// res_row * res_col - размер полученной матрицы
