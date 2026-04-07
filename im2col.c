@@ -5,7 +5,7 @@
 
 float *im2col(Tensor *tensor, int ker) {
     
-    // добление рамки из нулей, чтобы обработать края
+    // добаление рамки из нулей, чтобы обработать края
     float *advanced_matrix = (float*)calloc(tensor->count_channel * tensor->count_picture * \
         (tensor->height + 2) * (tensor->width + 2), sizeof(float));
     float *line = (float*)calloc(tensor->width + 2, sizeof(float));
@@ -51,7 +51,7 @@ float *im2col(Tensor *tensor, int ker) {
                             int col = h * w_res + w; // индекс столбца
                             
                             int src = (i * tensor->count_channel + j) * adv_matrix_height * adv_matrix_width \
-                             + (h + y + 1) * adv_matrix_width + (w + x + 1);
+                             + (h + y) * adv_matrix_width + (w + x);
                             int dst = (i * tensor->count_channel + j) * ker * ker * col_stride \
                              + row * col_stride + col;
                             
