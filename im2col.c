@@ -3,7 +3,7 @@
 #include "im2col.h"
 
 
-float *im2col(Tensor *tensor, int ker) {
+float *im2col(Tensor *tensor, int ker, int *res_row, int *res_col) {
     
     // добаление рамки из нулей, чтобы обработать края
     float *advanced_matrix = (float*)calloc(tensor->count_channel * tensor->count_picture * \
@@ -31,8 +31,9 @@ float *im2col(Tensor *tensor, int ker) {
     // ширина = (adv_matrix_height - ker + 1) * (adv_matrix_width - ker + 1)
     int adv_matrix_height = tensor->height + 2;
     int adv_matrix_width = tensor->width + 2; 
-    float *res = (float *)malloc(sizeof(float) * ker * ker * (adv_matrix_height - ker + 1) * (adv_matrix_width - ker + 1) *\
-    tensor->count_channel * tensor->count_picture);
+    *res_row = tensor->count_picture * tensor->count_channel * ker * ker;
+    *res_col = (adv_matrix_height - ker + 1) * (adv_matrix_width - ker + 1);
+    float *res = (float *)malloc(sizeof(float) * (*res_col) * (*res_row));
 
     // разбить изображение на блоки по ядру
     // выровнять их в столбцы
