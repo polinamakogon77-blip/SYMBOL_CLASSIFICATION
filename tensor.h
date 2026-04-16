@@ -19,7 +19,22 @@ typedef struct Tensor {
 }Tensor;
 
 
-Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w); // инициализация тензора
-void free_tensor(Tensor *tensor); // удаление тензора
+// инициализация тензора
+Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w);
+// data - файл с данными
+// picture - к-во изображений в тензоре
+// channel - к-во каналов
+// h, w - размер изображения
+
+// создание тензора из массива
+Tensor *create_tensor(float *data, int row, int col, int cnt_filter, int cnt_picture);
+// data - массив с данными
+// row, col - размер массива
+// cnt_filter - к-во фильтров на первом слое == к-во каналов на втором
+// cnt_picture - к-во изображений в тензоре
+
+// удаление тензора
+void free_tensor(Tensor *tensor); 
+
 
 #endif
