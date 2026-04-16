@@ -1,3 +1,6 @@
+#ifndef TENSOR_H
+#define TENSOR_H
+
 #include <stdio.h>
 
 
@@ -8,13 +11,15 @@ typedef struct Tensor {
     int *class_picture; // классы изображений
     int count_channel; // к-во каналов
     int height; // высота изображения
-    int wight; // ширина изображения
+    int width; // ширина изображения
     int step_picture; // шаг по изображениям
     int step_channel; // шаг по каналам
     int step_height; // шаг в высоту
-    int step_wight; // шаг в ширину
+    int step_width; // шаг в ширину
 }Tensor;
 
 
 Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w); // инициализация тензора
 void free_tensor(Tensor *tensor); // удаление тензора
+
+#endif
