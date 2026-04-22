@@ -27,11 +27,28 @@ Tensor **read_file(FILE *file, int *count_tensor) {
 }
 
 
+// перемешивает массив тензоров
+void suffle_tensor(Tensor **arr, int size) {
+    for (int i = size - 1; i > 0; --i) {
+        int idx = rand() % (i + 1); // случайный элемент из тех, что идут раньше i
+
+        // меняем местами
+        Tensor *temp = arr[i];
+        arr[i] = arr[idx];
+        arr[idx] = temp;
+    }
+}
+
+
 int main(void) {
     // чтение файла
     FILE *data = fopen("notMinist.bin", "rb");
     int count_tensor;
     Tensor **array = read_file(data, &count_tensor);
+
+    
+
+
 
     // очистка
     for (int i = 0; i < count_tensor; ++i) free_tensor(array[i]);
