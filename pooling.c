@@ -9,20 +9,33 @@ int my_ceil(int a, int b) {
 }
 
 // ищет максимальное число
-float max(float a, float b, float c, float d) {
-    float mx = a > b? a: b;
-    mx = mx > c? mx: c;
-    mx = mx > d? mx: d;
+float max(float a, float b, float c, float d, int **index, int idx, int idx_a, int idx_b, int idx_c, int idx_d) {
+    float mx = a;
+    (*index)[idx] = idx_a;
 
+    if (mx < b) {
+        mx = b;
+        (*index)[idx] = idx_b;
+    }
+    if (mx < c) {
+        mx = c;
+        (*index)[idx] = idx_c;
+    }
+    if (mx < d) {
+        mx = d;
+        (*index)[idx] = idx_d;
+    }
     return mx;
 }
 
 
-float *pooling(float *matrix, int row, int col, int *res_row, int *res_col) {
+float *pooling(float *matrix, int **index, int row, int col, int *res_row, int *res_col) {
     // матрица результата
     *res_row = my_ceil(row, 2);
     *res_col = my_ceil(col, 2);
     float *result = (float *)malloc(sizeof(float) * (*res_col) * (*res_row));
+
+    *index = (int *)malloc(sizeof(int) * (*res_col) * (*res_row)); 
 
     for (int i = 0; i < *res_row; ++i) {
         for (int j = 0; j < *res_col; ++j) {
@@ -40,7 +53,8 @@ float *pooling(float *matrix, int row, int col, int *res_row, int *res_col) {
             // четвертый элемента области в матрице
             float d = (col_1 + 1 >= col) || (row_1 + 1 >= row)? 0: matrix[(row_1 + 1) * col + col_1+1];
 
-            result[i * (*res_col) + j] = max(a, b, c, d);
+            result[i * (*res_col) + j] = max(a, b, c, d, index, i * (*res_col) + j, row_1 * col + col_1, \
+            row_1 * col + col_1+1, (row_1 + 1) * col + col_1, (row_1 + 1) * col + col_1+1);
 
         }
     }
