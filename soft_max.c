@@ -1,4 +1,5 @@
 #include <math.h>
+#include "soft_max.h"
 
 
 #define SIZE_ALF 10
@@ -21,4 +22,10 @@ void soft_max(float *vector) {
     // нормирует значения
     for (int i = 0; i < SIZE_ALF; ++i) vector[i] = vector[i] / summa;
 
+}
+
+void soft_max_gradient(float *batch, Tensor *tensor) {
+    for (int i = 0; i < tensor->count_picture; ++i) {
+        batch[i * 10 + tensor->class_picture[i]] -= 1;
+    }
 }
