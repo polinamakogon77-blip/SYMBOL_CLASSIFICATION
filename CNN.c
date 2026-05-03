@@ -1,10 +1,15 @@
 #include <stdlib.h>
+#include "forward_pass.h"
 #include "convolutional_layer.h"
 #include "full_con_layer.h"
 #include "soft_max.h"
+#include "update_weight.h"
+#include <math.h>
 
 
-float *FORWAR_PASS(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *displacement, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss) {
+float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *displacement, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss) {
+    // ===========FORWARD PASS===========
+
     // первый сверточный слой
     int row_conv_1, col_conv_1; // размер результата
     float *conv_1 = conv_layer(tensor, filter_1, size_ker, row_filter_1, col_filter_1, &row_conv_1, &col_conv_1);
@@ -37,8 +42,17 @@ float *FORWAR_PASS(Tensor *tensor, float *filter_1, float *filter_2, float *filt
     *res_size = tensor->count_picture * 10;
     *loss  /= tensor->count_picture;
     
-    free(conv_1);
-    free(tensor_conv);
+    // ===========BACKWARD PASS===========
+    soft_max_gradient(full_conv, tensor);
+    
+    // вычисляем градиенты
+    float *gradient_out;
+    float *gradient_weight;
+    float *gradient_bias;
+    update_weight(full_conv, conv_2, filter_3, &gradient_out, &gradient_weight, &gradient_bias, tensor->count_picture, row_conv_2 * col_conv_2);
 
+    free(conv_1);
+    free_tensor(tensor_conv);
+    free(conv_2);
     return full_conv;
 }
