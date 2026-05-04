@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "forward_pass.h"
 #include "convolutional_layer.h"
 #include "full_con_layer.h"
 #include "soft_max.h"
@@ -11,15 +10,17 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     // ===========FORWARD PASS===========
 
     // первый сверточный слой
+    float *index_poll_1; // массив индексов макимальных элементов для 1-го слоя
     int row_conv_1, col_conv_1; // размер результата
-    float *conv_1 = conv_layer(tensor, filter_1, size_ker, row_filter_1, col_filter_1, &row_conv_1, &col_conv_1);
+    float *conv_1 = conv_layer(tensor, filter_1, &index_poll_1, size_ker, row_filter_1, col_filter_1, &row_conv_1, &col_conv_1);
 
     //создание тензора из результата 1-го слоя
     Tensor *tensor_conv = create_tensor(conv_1, row_conv_1, col_conv_1, row_filter_1, tensor->count_picture);
 
     // второй сверточный слой
+    float *index_poll_2; // массив индексов макимальных элементов для 2-го слоя
     int row_conv_2, col_conv_2; // размер результата
-    float *conv_2 = conv_layer(tensor_conv, filter_2, size_ker, row_filter_1 * 2, size_ker * size_ker * row_filter_1, &row_conv_2, &col_conv_2);
+    float *conv_2 = conv_layer(tensor_conv, filter_2, &index_poll_2, size_ker, row_filter_1 * 2, size_ker * size_ker * row_filter_1, &row_conv_2, &col_conv_2);
 
     *loss = 0; // оценивает точность предсказаний
 
@@ -51,8 +52,17 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     float *gradient_bias;
     update_weight(full_conv, conv_2, filter_3, &gradient_out, &gradient_weight, &gradient_bias, tensor->count_picture, row_conv_2 * col_conv_2);
 
+    // градиент для ф-ии пулирования
+    
+
     free(conv_1);
     free_tensor(tensor_conv);
     free(conv_2);
+    free(index_poll_1);
+    free(index_poll_2);
+    free(gradient_out);
+    free(gradient_weight);
+    free(gradient_bias);
+    
     return full_conv;
 }
