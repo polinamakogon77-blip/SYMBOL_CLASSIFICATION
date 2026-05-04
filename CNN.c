@@ -3,6 +3,7 @@
 #include "full_con_layer.h"
 #include "soft_max.h"
 #include "update_weight.h"
+#include "pooling.h"
 #include <math.h>
 
 
@@ -46,6 +47,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     // ===========BACKWARD PASS===========
     soft_max_gradient(full_conv, tensor);
     
+    // градиенты для 2-ого сверточного слоя
     // вычисляем градиенты
     float *gradient_out;
     float *gradient_weight;
@@ -53,7 +55,8 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     update_weight(full_conv, conv_2, filter_3, &gradient_out, &gradient_weight, &gradient_bias, tensor->count_picture, row_conv_2 * col_conv_2);
 
     // градиент для ф-ии пулирования
-    
+    float *gradient_poll;
+    gradient_pooling(gradient_out, index_poll_2, &gradient_poll, tensor->count_picture * row_conv_2 * col_conv_2);    
 
     free(conv_1);
     free_tensor(tensor_conv);
@@ -63,6 +66,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     free(gradient_out);
     free(gradient_weight);
     free(gradient_bias);
-    
+    free(gradient_poll);
+
     return full_conv;
 }
