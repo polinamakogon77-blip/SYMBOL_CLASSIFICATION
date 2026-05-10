@@ -7,13 +7,6 @@
 #include "relu.h"
 
 
-// делит число a на b с округлением вверх
-int my_ceil(int a, int b) {
-    if (a % b == 0) return a / b;
-    return a / b + 1;
-}
-
-
 float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row_ker, int col_ker, int *pool_row, int *pool_col, float **input_relu) {
 
     int row_res, col_res; // размер результата
@@ -39,7 +32,7 @@ float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row
     for (int i = 0; i < row_ker; ++i) { 
         float *filter = matrix + i * (feature_h * feature_w);  // указатель на i-й фильтр 
         // MaxPool
-        float *index_filter; // времененный массив индексов для одного фильтра
+        int *index_filter; // времененный массив индексов для одного фильтра
         float *pooled = pooling(filter, &index_filter, feature_h, feature_w, pool_row, pool_col);
         
         // копируем результат

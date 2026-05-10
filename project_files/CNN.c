@@ -12,7 +12,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     // ===========FORWARD PASS===========
 
     // первый сверточный слой
-    float *index_poll_1; // массив индексов макимальных элементов для 1-го слоя
+    int *index_poll_1; // массив индексов макимальных элементов для 1-го слоя
     int row_conv_1, col_conv_1; // размер результата
     float *input_relu_1; // матрица, которая подается на вход ф-ии активации
     float *conv_1 = conv_layer(tensor, filter_1, &index_poll_1, size_ker, row_filter_1, col_filter_1, &row_conv_1, &col_conv_1, &input_relu_1);
@@ -21,7 +21,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     Tensor *tensor_conv = create_tensor(conv_1, row_conv_1, col_conv_1, row_filter_1, tensor->count_picture);
 
     // второй сверточный слой
-    float *index_poll_2; // массив индексов макимальных элементов для 2-го слоя
+    int *index_poll_2; // массив индексов макимальных элементов для 2-го слоя
     int row_conv_2, col_conv_2; // размер результата
     float *input_relu_2; // матрица, которая подается на вход ф-ии активации
     float *conv_2 = conv_layer(tensor_conv, filter_2, &index_poll_2, size_ker, row_filter_1 * 2, size_ker * size_ker * row_filter_1, &row_conv_2, &col_conv_2, &input_relu_2);
