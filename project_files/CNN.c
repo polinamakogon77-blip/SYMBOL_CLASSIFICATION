@@ -56,7 +56,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     float *gradient_out;
     float *gradient_filter3;
     float *gradient_bias_3;
-    update_weight(full_conv, conv_2, filter_3, &gradient_out, &gradient_filter3, &gradient_bias_3, tensor->count_picture, row_conv_2 * col_conv_2);
+    gradient_full(full_conv, conv_2, filter_3, &gradient_out, &gradient_filter3, &gradient_bias_3, tensor->count_picture, row_conv_2 * col_conv_2);
 
     // градиент для ф-ии пулирования_2
     float *gradient_poll2;
