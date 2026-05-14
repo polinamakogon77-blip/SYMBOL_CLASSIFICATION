@@ -8,7 +8,7 @@
 #include "col2im.h"
 
 
-float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row_ker, int col_ker, int *pool_row, int *pool_col, float **input_relu, float **matrix_col) {
+float *conv_layer(Tensor *tensor, float *ker, int **index, float *bias, int size_ker, int row_ker, int col_ker, int *pool_row, int *pool_col, float **input_relu, float **matrix_col) {
 
     int row_res, col_res; // размер результата
     float *matrix = im2col(tensor, size_ker, &row_res, &col_res);
@@ -21,6 +21,11 @@ float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row
     // размер для polling
     int feature_h = (tensor->height + 2 - size_ker) + 1;
     int feature_w = (tensor->width + 2 - size_ker) + 1;
+
+    // добавляем смещение для каждого элемента
+    for (int i = 0; i < row_ker; ++i) {
+        for (int j = 0; j < feature_h * feature_w; ++j) matrix[i * feature_h * feature_w + j] += bias[i];
+    }
 
     //запоминаю матрицу, которая подается на вход в ReLU
     *input_relu = (float *)malloc(sizeof(float) * feature_h * feature_w * row_ker);

@@ -5,7 +5,7 @@
 
 
 // реализует сверточный слой
-float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row_ker, int col_ker, int *pool_row, int *pool_col, float **input_relu, float **matrix_col);
+float *conv_layer(Tensor *tensor, float *ker, int **index, float *bias, int size_ker, int row_ker, int col_ker, int *pool_row, int *pool_col, float **input_relu, float **matrix_col);
 // tensor - набор изображений
 // size_ker - размер ядра
 // int row_ker, int col_ker - размер массива весов
@@ -13,6 +13,7 @@ float *conv_layer(Tensor *tensor, float *ker, int **index, int size_ker, int row
 // index - индексы максисальных элементов
 // input_relu - матрица, которая подается на вход ф-ии активации
 // matrix_col - результат im2col
+// bias - смещение
 
 // вычисляет градиент для сверточного слоя
 void gradient_conv(float *gradient_in, Tensor *tensor, float *weight, float *matrix_col, int ker_size, int cnt_filter, float *grad_weight, \
