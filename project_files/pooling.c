@@ -63,10 +63,10 @@ float *pooling(float *matrix, int **index, int row, int col, int *res_row, int *
 
 }
 
-void gradient_pooling(float *gradient_in, float *index, float **gradient_out, int size_in) {
+void gradient_pooling(float *gradient_in, int *index, float **gradient_out, int size_in) {
     *gradient_out = (float *)calloc(size_in * 4, sizeof(float));
 
-    for (int i = 0; i < size_in; ++i) {
+    for (int i = 0; i < size_in * 4; ++i) {
         int idx = index[i];
         if (idx >= 0 && idx < size_in * 4) {
             (*gradient_out)[idx] += gradient_in[i];

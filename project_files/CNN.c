@@ -110,9 +110,8 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     free(input_relu_2);
     free(gradient_conv1);
     free(gradient_conv2);
-    free(matrix_col_1);
-    free(matrix_col_2);
 
+    // временно
     free(gradient_bias_1);
     free(gradient_bias_2);
     free(gradient_bias_3);

@@ -58,7 +58,6 @@ float *conv_layer(Tensor *tensor, float *ker, int **index, float *bias, int size
         free(index_filter);
     }
 
-    free(matrix);
     return all_pooled;
 }
 
