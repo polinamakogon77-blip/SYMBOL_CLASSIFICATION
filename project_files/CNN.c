@@ -5,10 +5,11 @@
 #include "update_weight.h"
 #include "pooling.h"
 #include "relu.h"
+#include "CNN.h"
 #include <math.h>
 
 
-float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *bias_1, float *bias_2, float *bias_3, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss) {
+float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *bias_1, float *bias_2, float *bias_3, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss, float alpha) {
     // ===========FORWARD PASS===========
 
     // первый сверточный слой
@@ -68,7 +69,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
 
     // градиент для 2-ого сверточного слоя
     float *gradient_conv2 = (float *)malloc(sizeof(float) * tensor_conv->count_channel * tensor_conv->count_picture * tensor_conv->height * tensor_conv->width);
-    float *gradient_filter2 = (float *)calloc(tensor_conv->count_channel * size_ker * size_ker, sizeof(float));
+    float *gradient_filter2 = (float *)calloc(tensor_conv->count_channel * size_ker * size_ker * row_filter_1 * 2, sizeof(float));
     float *gradient_bias_2 = (float *)calloc(row_filter_1 * 2, sizeof(float));
     gradient_conv(gradient_relu2, tensor_conv, filter_2, matrix_col_2, size_ker, row_filter_1 * 2, gradient_filter2, gradient_bias_2, gradient_conv2); 
 
@@ -82,13 +83,20 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
 
     // градиент для 1-ого сверточного слоя
     float *gradient_conv1 = (float *)malloc(sizeof(float) * tensor->count_channel * tensor->count_picture * tensor->height * tensor->width);
-    float *gradient_filter1 = (float *)calloc(tensor->count_channel * size_ker * size_ker, sizeof(float));
+    float *gradient_filter1 = (float *)calloc(tensor->count_channel * size_ker * size_ker * row_filter_1, sizeof(float));
     float *gradient_bias_1 = (float *)calloc(row_filter_1, sizeof(float));
     gradient_conv(gradient_relu1, tensor, filter_1, matrix_col_1, size_ker, row_filter_1, gradient_filter1, gradient_bias_1, gradient_conv1); 
 
+    // ======обновление всех весов и смещений=======
+    update(filter_1, gradient_filter1, row_filter_1 * col_filter_1, alpha);
+    update(bias_1, gradient_bias_1, row_filter_1, alpha);
+    update(filter_2, gradient_filter2, row_filter_1 * 2 * size_ker * size_ker * row_filter_1, alpha);
+    update(bias_2, gradient_bias_2, row_filter_1 * 2, alpha);
+    update(filter_3, gradient_filter3, row_conv_2 * col_conv_2 * 10, alpha);
+    update(bias_3, gradient_bias_3, 10, alpha);
+
 
     // очистка
-    free(conv_1);
     free_tensor(tensor_conv);
     free(conv_2);
     free(index_poll_1);
@@ -102,8 +110,9 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     free(input_relu_2);
     free(gradient_conv1);
     free(gradient_conv2);
+    free(matrix_col_1);
+    free(matrix_col_2);
 
-    // временно
     free(gradient_bias_1);
     free(gradient_bias_2);
     free(gradient_bias_3);
