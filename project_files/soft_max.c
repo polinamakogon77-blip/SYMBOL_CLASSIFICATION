@@ -20,7 +20,10 @@ void soft_max(float *vector) {
     }
 
     // нормирует значения
-    for (int i = 0; i < SIZE_ALF; ++i) vector[i] = vector[i] / summa;
+    for (int i = 0; i < SIZE_ALF; ++i) {
+        vector[i] = vector[i] / summa;
+        if (vector[i] < 1e-8f) vector[i] = 1e-8f;
+    }
 
 }
 
