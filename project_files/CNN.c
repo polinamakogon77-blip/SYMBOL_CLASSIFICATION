@@ -9,7 +9,7 @@
 #include <math.h>
 
 
-float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *bias_1, float *bias_2, float *bias_3, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss, float alpha) {
+void CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, float *bias_1, float *bias_2, float *bias_3, int size_ker, int row_filter_1, int col_filter_1, int *res_size, float *loss, float alpha) {
     // ===========FORWARD PASS===========
 
     // первый сверточный слой
@@ -20,7 +20,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     float *conv_1 = conv_layer(tensor, filter_1, &index_poll_1, bias_1, size_ker, row_filter_1, col_filter_1, &row_conv_1, &col_conv_1, &input_relu_1, &matrix_col_1);
 
     //создание тензора из результата 1-го слоя
-    Tensor *tensor_conv = create_tensor(conv_1, row_conv_1, col_conv_1, row_filter_1, tensor->count_picture);
+    Tensor *tensor_conv = create_tensor(conv_1, row_conv_1, col_conv_1, row_filter_1, tensor->count_picture, row_conv_1 * col_conv_1 * row_filter_1 * tensor->count_picture);
 
     // второй сверточный слой
     int *index_poll_2; // массив индексов макимальных элементов для 2-го слоя
@@ -31,12 +31,12 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
 
     *loss = 0; // оценивает точность предсказаний
 
-    int size_picture = row_conv_2 * col_conv_2; // размер одного изображения
+    int size_picture = row_conv_2 * col_conv_2 * row_filter_1 * 2; // размер одного изображения
     float *full_conv = (float*)malloc(sizeof(float) * tensor->count_picture * 10);
     for (int i = 0; i < tensor->count_picture; ++i) {
         float *current_pictures = conv_2 + i * size_picture; // текущее изображение
         // полносвязный слой
-        float *full_conv_picture = fullconnected_layer(current_pictures, filter_3, bias_3, row_conv_2 * col_conv_2);
+        float *full_conv_picture = fullconnected_layer(current_pictures, filter_3, bias_3, row_conv_2 * col_conv_2 * row_filter_1 * 2);
 
         // преобразуем знчения в вероятности
         soft_max(full_conv_picture);
@@ -57,46 +57,56 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     float *gradient_out;
     float *gradient_filter3;
     float *gradient_bias_3;
-    gradient_full(full_conv, conv_2, filter_3, &gradient_out, &gradient_filter3, &gradient_bias_3, tensor->count_picture, row_conv_2 * col_conv_2);
+    gradient_full(full_conv, conv_2, filter_3, &gradient_out, &gradient_filter3, &gradient_bias_3, tensor->count_picture, row_conv_2 * col_conv_2 * row_filter_1 * 2);
 
     // градиент для ф-ии пулирования_2
     float *gradient_poll2;
-    gradient_pooling(gradient_out, index_poll_2, &gradient_poll2, tensor->count_picture * row_conv_2 * col_conv_2);    
+    gradient_pooling(gradient_out, index_poll_2, &gradient_poll2, tensor->count_picture * row_conv_2 * col_conv_2 * row_filter_1 * 2, tensor->count_picture * row_filter_1 * 2 *(tensor_conv->height + 2 - size_ker + 1) *(tensor_conv->width + 2 - size_ker + 1));    
 
     //градиент для ф-ии активации_2
     float *gradient_relu2;
-    gradient_ReLU(gradient_poll2, input_relu_2, &gradient_relu2, row_filter_1 * 2 * (tensor_conv->height + 2 - size_ker + 1) * (tensor_conv->width + 2 - size_ker + 1));
+    gradient_ReLU(gradient_poll2, input_relu_2, &gradient_relu2, row_filter_1 * 2 * (tensor_conv->height + 2 - size_ker + 1) * (tensor_conv->width + 2 - size_ker + 1) * tensor->count_picture);
 
     // градиент для 2-ого сверточного слоя
-    float *gradient_conv2 = (float *)malloc(sizeof(float) * tensor_conv->count_channel * tensor_conv->count_picture * tensor_conv->height * tensor_conv->width);
+    float *gradient_conv2 = (float *)calloc(tensor_conv->count_picture * row_filter_1 * row_conv_1 * col_conv_1, sizeof(float));
     float *gradient_filter2 = (float *)calloc(tensor_conv->count_channel * size_ker * size_ker * row_filter_1 * 2, sizeof(float));
     float *gradient_bias_2 = (float *)calloc(row_filter_1 * 2, sizeof(float));
     gradient_conv(gradient_relu2, tensor_conv, filter_2, matrix_col_2, size_ker, row_filter_1 * 2, gradient_filter2, gradient_bias_2, gradient_conv2); 
 
+    
      // градиент для ф-ии пулирования
     float *gradient_poll1;
-    gradient_pooling(gradient_conv2, index_poll_1, &gradient_poll1, tensor->count_picture * row_conv_1 * col_conv_1);    
+    gradient_pooling(gradient_conv2, index_poll_1, &gradient_poll1, tensor->count_picture * row_conv_1 * col_conv_1 * row_filter_1, tensor->count_picture * row_filter_1 *  (tensor_conv->height + 2 - size_ker + 1) *(tensor_conv->width + 2 - size_ker + 1));    
 
     //градиент для ф-ии активации
     float *gradient_relu1;
-    gradient_ReLU(gradient_poll1, input_relu_1, &gradient_relu1, row_filter_1 * (tensor->height + 2 - size_ker + 1) * (tensor->width + 2 - size_ker + 1));
+    gradient_ReLU(gradient_poll1, input_relu_1, &gradient_relu1, row_filter_1 * (tensor->height + 2 - size_ker + 1) * (tensor->width + 2 - size_ker + 1) * tensor->count_picture);
 
     // градиент для 1-ого сверточного слоя
-    float *gradient_conv1 = (float *)malloc(sizeof(float) * tensor->count_channel * tensor->count_picture * tensor->height * tensor->width);
+    float *gradient_conv1 = (float *)calloc(tensor->count_channel * tensor->count_picture * tensor->height * tensor->width, sizeof(float));
     float *gradient_filter1 = (float *)calloc(tensor->count_channel * size_ker * size_ker * row_filter_1, sizeof(float));
     float *gradient_bias_1 = (float *)calloc(row_filter_1, sizeof(float));
-    gradient_conv(gradient_relu1, tensor, filter_1, matrix_col_1, size_ker, row_filter_1, gradient_filter1, gradient_bias_1, gradient_conv1); 
+    gradient_conv(gradient_relu1, tensor, filter_1, matrix_col_1, size_ker, row_filter_1, gradient_filter1, gradient_bias_1, gradient_conv1);
+
+    // L2-регуляризация
+    for (int i = 0; i < row_filter_1 * col_filter_1; ++i) gradient_filter1[i] += 2.0f * L2_COEFF * filter_1[i];
+    for (int i = 0; i < row_filter_1 * 2 * size_ker * size_ker * row_filter_1; ++i) gradient_filter2[i] += 2.0f * L2_COEFF * filter_2[i];
+    for (int i = 0; i < row_conv_2 * col_conv_2 * row_filter_1 * 2 * 10; ++i) gradient_filter3[i] += 2.0f * L2_COEFF * filter_3[i];
+
+    *loss += L2_COEFF * L2_LOSS; 
+    *loss /= tensor->count_picture;
 
     // ======обновление всех весов и смещений=======
     update(filter_1, gradient_filter1, row_filter_1 * col_filter_1, alpha);
     update(bias_1, gradient_bias_1, row_filter_1, alpha);
     update(filter_2, gradient_filter2, row_filter_1 * 2 * size_ker * size_ker * row_filter_1, alpha);
     update(bias_2, gradient_bias_2, row_filter_1 * 2, alpha);
-    update(filter_3, gradient_filter3, row_conv_2 * col_conv_2 * 10, alpha);
+    update(filter_3, gradient_filter3, row_conv_2 * col_conv_2 * 10 * row_filter_1 * 2, alpha);
     update(bias_3, gradient_bias_3, 10, alpha);
 
 
     // очистка
+    free(conv_1);
     free_tensor(tensor_conv);
     free(conv_2);
     free(index_poll_1);
@@ -110,6 +120,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     free(input_relu_2);
     free(gradient_conv1);
     free(gradient_conv2);
+    free(full_conv);
 
     // временно
     free(gradient_bias_1);
@@ -118,6 +129,7 @@ float *CNN(Tensor *tensor, float *filter_1, float *filter_2, float *filter_3, fl
     free(gradient_filter1);
     free(gradient_filter2);
     free(gradient_filter3);
+    free(matrix_col_1);
+    free(matrix_col_2);
 
-    return full_conv;
 }
