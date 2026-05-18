@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tensor.h"
 
 
@@ -21,6 +22,9 @@ Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w) {
         fread(&tensor->class_picture[i], sizeof(int), 1, data);
     }
 
+    // нормализация
+    for (int i = 0; i < picture * h * w * channel; ++i) tensor->data[i] /= 255.0f;
+
     // подсчет шагов
     tensor->step_picture = w * h * channel;
     tensor->step_channel = w * h;
@@ -31,7 +35,7 @@ Tensor *init_tensor(FILE *data, int picture, int channel, int h, int w) {
 }
 
 
-Tensor *create_tensor(float *data, int row, int col, int cnt_filter, int cnt_picture) {
+Tensor *create_tensor(float *data, int row, int col, int cnt_filter, int cnt_picture, int size) {
     // выделяем память
     Tensor *new = (Tensor *)malloc(sizeof(Tensor));
 
@@ -43,7 +47,11 @@ Tensor *create_tensor(float *data, int row, int col, int cnt_filter, int cnt_pic
 
     //новые данные
     new->class_picture = NULL;
-    new->data = data;
+    if (data != NULL && size > 0) {
+        new->data = (float *)malloc(sizeof(float) * size);
+        memcpy(new->data, data, size * sizeof(float));
+    }
+    else new->data = NULL;
     new->height = row;
     new->width = col;
 
@@ -56,7 +64,7 @@ Tensor *create_tensor(float *data, int row, int col, int cnt_filter, int cnt_pic
 
 void free_tensor(Tensor *tensor) {
     if (tensor == NULL) return;
-
+    
     if (tensor->data != NULL) {
         free(tensor->data);
         tensor->data = NULL;
@@ -65,6 +73,5 @@ void free_tensor(Tensor *tensor) {
         free(tensor->class_picture);
         tensor->class_picture = NULL;
     }
-
     free(tensor);
 }
